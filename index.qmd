@@ -1,8 +1,8 @@
 ---
-title: "MATH 3190"
+title: "MATH 3190 Portfolio"
 ---
 
-This website contains homework assignments for Math 3190.
+This website contains all assignments for Math 3190.
 
 ```{r}
 #| echo: false

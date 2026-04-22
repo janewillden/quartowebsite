@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Spline Regression – quartowebsite</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5b8f9b2f3cffee265242a5d44fbb1e00.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+</head><body class="nav-fixed quarto-light">\usepackage{indentfirst}
+\setlength{\parindent}{2em}
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+
+
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="index.qmd" class="navbar-brand navbar-brand-logo">
+    <img src="../flower.JPG" alt="A flower logo" class="navbar-logo light-content">
+    <img src="../flower.JPG" alt="A flower logo" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="index.qmd">
+    <span class="navbar-title">quartowebsite</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-homework" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Homework</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-homework">    
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_1.html">
+ <span class="dropdown-text">Homework 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_2.html">
+ <span class="dropdown-text">Homework 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_3.html">
+ <span class="dropdown-text">Homework 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_4.html">
+ <span class="dropdown-text">Homework 4</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_5.html">
+ <span class="dropdown-text">Homework 5</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_6.html">
+ <span class="dropdown-text">Homework 6</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_7.html">
+ <span class="dropdown-text">Homework 7</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_8.html">
+ <span class="dropdown-text">Homework 8</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_9.html">
+ <span class="dropdown-text">Homework 9</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../Homework/Homework_10.html">
+ <span class="dropdown-text">Homework 10</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-final-project" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Final Project</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="nav-menu-final-project">    
+        <li>
+    <a class="dropdown-item" href="../Homework/Spline_Regression.html">
+ <span class="dropdown-text">Final Project</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#assumptions" id="toc-assumptions" class="nav-link" data-scroll-target="#assumptions">Assumptions</a></li>
+  <li><a href="#mathematics" id="toc-mathematics" class="nav-link" data-scroll-target="#mathematics">Mathematics</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a></li>
+  <li><a href="#diagnostics-and-remedial-measures" id="toc-diagnostics-and-remedial-measures" class="nav-link" data-scroll-target="#diagnostics-and-remedial-measures">Diagnostics and Remedial Measures</a></li>
+  <li><a href="#strengths-and-weaknesses" id="toc-strengths-and-weaknesses" class="nav-link" data-scroll-target="#strengths-and-weaknesses">Strengths and Weaknesses</a></li>
+  <li><a href="#the-dataset" id="toc-the-dataset" class="nav-link" data-scroll-target="#the-dataset">The Dataset</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Spline Regression</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sienna Hardyman, Jane Willden, Preston Hindman </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>In the real world, relationships between predictors and response variables are rarely perfectly linear, quadratic, or cubic. These relationships often display different behaviors at specific regions. For example, human growth curves plotted as height vs.&nbsp;age. People go through multiple different growth phases in their lifetimes so plots are smooth and continuous but rates of change are continually varying, In this case, it would be impossible to capture every trend with one function. Another example is seismic data. When earthquake signals are captured, plots typically display multiple abrupt shocks broken up by periods of inactivity or smaller oscillations. One global function would also be impractical here. In our report we focus on the mcycle dataset in the MASS package. This data is from a simulated motorcycle crash experiment that measures acceleration in the rider’s head in milliseconds after impact. This data is not suitable for a linear or polynomial model because the response’s behavior is highly oscillatory and experiences multiple abrupt changes.</p>
+<p>Instead, we can model the data using spline regression. Spline regression is a more flexible approach that is designed to capture nonlinear relationships between a predictor and a response variable. Rather than fitting a single global function, the domain of the predictor is divided into multiple smaller intervals, and a polynomial is fit within each region. These piecewise polynomials are joined at points called knots, producing a smooth overall curve that can adapt to local patterns in the data. The number and placement of knots control the flexibility of the model. Increasing the number of knots allows the model to capture more complex patterns, while fewer knots result in a smoother, more constrained fit. The degree of the polynomial used also determines the model’s overall stability and can be increased or decreased accordingly.</p>
+<p>In this report we focus on polynomials of degree 3 and 4, as these result in the most optimal model, providing a balance between stability and flexibility. We will compare the effect of knot selection by fitting models with manually specified knots and knots selected automatically by R. We will use the bs() and ns() functions to fit multiple models in R. Our goal is to evaluate the effectiveness of spline regression in modeling nonlinear relationships by testing how polynomial degree, knot placement, and spline type impact performance. Model performance will be assessed using RMSE values, QQ plots, and residual plots.</p>
+</section>
+<section id="assumptions" class="level3">
+<h3 class="anchored" data-anchor-id="assumptions">Assumptions</h3>
+<p>In spline regression we assume the standard regression assumptions. This includes linearity in parameters. Even though the relationship between the predictor and the response is inherently nonlinear, the regression coefficients in the model must be linear. This allows least squares to be used to estimate coefficients and minimize errors. We also assume independence of errors, meaning there is no correlation between errors.</p>
+<p>We assume constant variance, meaning errors do not increase or decrease across values of x. If the errors are autocorrelated or variance is not constant, the errors become unreliable leading to incorrect confidence intervals and estimates are less accurate. We also assume that the errors are normally distributed. This validates any confidence intervals or hypothesis tests on the model. Together, these assumptions guarantee that any variation in the model is random and unbiased. These assumptions can be verified using residual plots, histograms, and QQ plots.</p>
+<p>In addition to the basic regression assumptions, there are assumptions specific to splines. We first assume that the relationship between the predictor and the response is smooth and continuous. Specifically, we want the function itself to be continuous as well as <span class="math inline">\(n-1\)</span> derivatives for an <span class="math inline">\(n\)</span>th degree polynomial. For example, a cubic spline will be continuous up to the second derivative. This assumption will produce smooth, natural-looking curves. Since piecewise polynomials are the core of spline regression, we assume that the function can be constructed by multiple polynomials that fit local observations well. This ensures that local patterns are captured without requiring a high degree polynomial which leads to instability.</p>
+<p>We assume that the number and placement of knots is chosen appropriately. Knots have a direct influence on the flexibility of the model and determine if there is a risk of overfitting or underfitting. Additionally, at each knot, we assume that each polynomial connects seamlessly by matching function values and first derivatives. Finally, we assume that the degree of polynomial on each interval is appropriate. This ensures the model balances flexibility and stability with accuracy well.</p>
+</section>
+<section id="mathematics" class="level3">
+<h3 class="anchored" data-anchor-id="mathematics">Mathematics</h3>
+<p>Instead of fitting one polynomial globally over the entire range of x, we divide the domain into several intervals and fit different polynomials locally in distinct regions of x. This allows for a much better-fitting model because it can adapt to abrupt changes in trends in different regions rather than being restricted to an overall pattern. This is beneficial if trends are very local or fragmented where a global polynomial would not be able to fit smoothly over. Overall, accuracy and flexibility are increased.</p>
+<p>A spline is a function of degree <span class="math inline">\(n\)</span> on each interval divided by <span class="math inline">\(k\)</span> knots <span class="math inline">\(\{\xi_1,...,\xi_k\}\)</span>. The first step in constructing a spline function is selecting the amount of intervals that x will be divided into. This number is determined by choosing boundaries for each interval separated by what is referred to as knots. These knots can be chosen manually, most commonly by dividing the domain into any specified number of quantiles. This ensures data is evenly distributed across intervals. For example, three knots would divide the domain at the 25th, 50th, and 75th quantile. Knots can also be placed at certain points of interest where trends are known to abruptly change. In most cases, 3-5 knots are sufficient to capture non-linear trends without too much overfitting.</p>
+<p>Then, a polynomial of degree <span class="math inline">\(n\)</span> is fit to the data within each sub-interval, such that:</p>
+<p><span class="math display">\[f(x)=
+\begin{cases}
+P_1(x) &amp; x &lt; \xi_1 \\
+P_2(x) &amp; \xi_1 \leq x \leq \xi_2 \\
+\vdots &amp; \vdots \\
+P_{n+1}(x) &amp; x \geq \xi_n
+\end{cases}\]</span></p>
+<p>However, this method usually results in a model that is fragmented at each knot because the boundary values for either function to the left or right are unrestricted and not specified. This unnatural discontinuity issue can be solved by placing constraints on each piecewise polynomial called boundary conditions. These conditions specifically apply to cubic polynomials since they allow for second-degree continuity. There are two types of conditions, natural and clamped which each have different derivative and continuity conditions. For a natural spline, it is given that:</p>
+<p><span class="math display">\[\begin{align*}
+&amp;f(x)^-=f(x)^+\\
+&amp;f'(x)^-=f'(x)^+\\
+&amp;f''(x)=0 \text{ at either endpoint}
+\end{align*}\]</span></p>
+<p>For a clamped spline, it is given that:</p>
+<p><span class="math display">\[\begin{align*}
+&amp;f(x)^-=f(x)^+ \\
+&amp;f'(x)=c
+\end{align*}\]</span></p>
+<p>Where <span class="math inline">\(c\)</span> is a constant specified at the boundaries.</p>
+<p>Natural splines are preferred because they enforce stable behavior at boundaries where data is typically sparse, and true slopes of the data are usually unknown. By imposing linear constraints at the endpoints, they reduce instability and help prevent overfitting.</p>
+<p>But, computing these coefficients to support the boundary conditions required for a smooth, continuous fit can get complicated. So, we introduce basis functions as an alternative to multiple polynomials. The general form of a basis function is:</p>
+<p><span class="math display">\[
+(x-\xi_i)^n_+=
+\begin{cases}
+0 &amp; x\leq \xi_i \\
+(x-\xi_i)^n &amp; \xi_i&lt;x
+\end{cases}
+\]</span></p>
+<p>Where <span class="math inline">\(\xi\)</span> is a given knot and n is the degree of the polynomial used. These basis functions are truncated which means that the function is zero up to the knot, then curves smoothly after. This causes the model to change shape only at a determined boundary. For a spline of degree d, this is modeled as: <span class="math display">\[f(x)=\beta_0+\beta_1x+...+\beta_nx^n+\sum_{i=1}^k\gamma_i(x-\xi_i)^n\]</span></p>
+<p>Where <span class="math inline">\(\beta_i\)</span> and <span class="math inline">\(\gamma_i\)</span> are coefficients estimated using least squares.</p>
+<p>Essentially, the polynomial terms determine the overall global shape of the function, while the truncated basis functions allow for localized deviations in specific intervals after each knot. Although this method is mathematically equivalent to the piecewise polynomial construction, it is much more simplified because the smoothness constraints are directly met by the basis functions, avoiding the need for additional continuity calculations.</p>
+<p>Degrees of freedom in a spline model are determined by the number of basis functions which depends on the number of knots and degree of the polynomials used. A higher number of degrees of freedom results in a more flexible model that can more closely follow the data, but may lead to overfitting. A lower degree of freedom results in a smoother curve with higher bias, which may miss important trends.</p>
+</section>
+<section id="methods" class="level3">
+<h3 class="anchored" data-anchor-id="methods">Methods</h3>
+<p>R puts this into effect with the bs() and ns() functions from the ‘splines’ package. The bs() function constructs B-splines, which are not a type of spline but rather a construction of the spline function using basis functions. The user inputs the predictor variable and the degree of the polynomials along with either the degrees of freedom or specified locations of knots. If degrees of freedom are listed, R automatically selects the location of the knots, usually based on quantiles of the predictor’s domain. Alternatively, the location of each knot can be listed, allowing the user to place them at points of interest.</p>
+<p>The ns() function constructs natural splines which are a type of cubic spline with additional boundary conditions to ensure that the function is linear at either endpoint and continuous at the knots. The arguments for this function are the same and like the bs() function, R uses the basis functions in the construction of the spline, along with the boundary conditions, resulting in a smoother, more stable fit.</p>
+</section>
+<section id="diagnostics-and-remedial-measures" class="level3">
+<h3 class="anchored" data-anchor-id="diagnostics-and-remedial-measures">Diagnostics and Remedial Measures</h3>
+<p>There are three main issues that can arise in any spline model: underfitting or overfitting which are both caused by poor choice of polynomial degree and knot placement, and unstable boundary behavior. The flexibility and accuracy of a spline is determined by the degree of the polynomial and number and placement of knots selected. If too many knots or too high of a degree are used, the model may become too sensitive to noise in the data resulting in an overfit model. On the other hand, if too few knots or too low of a degree are used, the model may fail to capture nonlinear relationships between the predictor and the response variables resulting in underfitting. Additionally, a model may perform poorly around the boundaries of the data where observations become sparse. This can cause instability and greater errors in predictions near the boundaries in the domain, leading to overall less accuracy.</p>
+<p>There are a couple of methods to evaluate the model’s performance. The first is to analyze residuals with a plot of residuals versus fitted values. Ideally, residuals should be randomly scattered with no clear pattern and constant variance across the fitted values (homoscedasticity), with no clear shape or pattern. This indicates that the model successfully captured the data well. A bad plot, on the other hand, may show a curved pattern or a non-constant variance (heteroskedasticity) across the fitted values. This indicates that the model failed to capture important trends in the data.</p>
+<p>Residuals can also be assessed with a QQ plot which evaluates normality. Ideally, in a well-fitted model, residuals will follow the diagonal reference line very closely. A bad plot will show deviations such as heavy tails, or a skewed, nonlinear shape. This is likely caused by outliers and misspecified arguments.</p>
+<p>Another easy way to measure model performance is by computing the Root Mean Squared Error for each model. RMSE measures the average difference in predicted versus actual values, making it simple to compare models with varying degrees of freedom and knot placement. A lower relative RMSE value indicates overall better performance. However, because the model’s arguments can be easily tuned to create a high performing model by minimizing the RMSE overfitting can easily become an issue, and will not guarantee the model will perform as well on new data.</p>
+<p>This issue can be addressed with cross-validation to gauge the model’s performance on unseen data. The dataset can be split into multiple subsets where a model is repeatedly tested on a subset, and evaluated on the remaining sets. By taking the average of the RMSE values across each set, the model’s performance on new data can be estimated. This method makes it easier to select optimal knots, degrees of freedom, or polynomial degree without overfitting the model.</p>
+<p>Finally, issues in boundary behavior of the model can be resolved by using natural splines which automatically impose constraints on the boundaries. These conditions stabilize the model near the edges of the domain, leading to overall better performance.</p>
+</section>
+<section id="strengths-and-weaknesses" class="level3">
+<h3 class="anchored" data-anchor-id="strengths-and-weaknesses">Strengths and Weaknesses</h3>
+<p>The primary strength of spline regression is its flexibility. Splines are able to accurately model non-linear relationships by connecting individual, local, piecewise functions. Another major strength is local control. Since the model is constructed with piecewise polynomials, changes in one region of the data only affects that specific area, which reduces the impact of outliers.</p>
+<p>Another advantage is a smooth and natural-looking model. This is accomplished with continuity constraints at each boundary, so each polynomial fits seamlessly. Splines can also easily be tuned. Different numbers and placements of knots as well as degree of polynomials directly control the model’s flexibility, stability, and accuracy. Spline regression is also easily implemented in R with simple built in functions.</p>
+<p>However, spline regression has a few disadvantages. Because the model can be easily tuned with knots and polynomial degree, the model can be sensitive to choices of each and results can be significantly impacted. Incorrect knot placement or too few risks an underfit model that fails to capture real trends. On the other hand, too many knots will cause the model to be overfit and capture noise in the data rather than underlying trends. The risks are similar with too low or too high degree of polynomial so appropriate parameter selection is important. Splines are also sensitive to sparse data, this can be problematic near boundaries or knots. In addition, splines are computationally complex compared to linear regression. This complexity increases directly with the number of knots and polynomial degree.</p>
+<p>As mentioned previously, the primary use of spline regression is to handle complex, nonlinear relationships between the predictor and response variable. In this case linear models are not applicable. Polynomials may fit the data well, but they are often more unstable. In order to capture every local trend accurately, a high degree is required. But, this usually results in a model with high oscillations and poor behavior at boundaries. This problem can be resolved with splines because they focus on fitting to local rather than global patterns. Spline models can provide more accuracy than a high degree polynomial model with far less instability and variance.</p>
+</section>
+<section id="the-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="the-dataset">The Dataset</h3>
+<p>Note that the RMSE value for each model fit is displayed above the corresponding plot.</p>
+<div style="page-break-after: always;"></div>
+<section id="linear-regression-model" class="level4">
+<h4 class="anchored" data-anchor-id="linear-regression-model">Linear regression Model:</h4>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 45.97677</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Clearly, the data has a nonlinear relationship, which the linear model fails to capture.</p>
+</section>
+<section id="polynomial-regression-model" class="level4">
+<h4 class="anchored" data-anchor-id="polynomial-regression-model">Polynomial Regression Model:</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>polymod <span class="ot">=</span> <span class="fu">lm</span>(accel <span class="sc">~</span> <span class="fu">poly</span>(times, <span class="dv">4</span>), <span class="at">data =</span> mcycle)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>times_lims <span class="ot">=</span> <span class="fu">range</span>(mcycle<span class="sc">$</span>times)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>times_grid <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span>times_lims[<span class="dv">1</span>],<span class="at">to=</span>times_lims[<span class="dv">2</span>])</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(polymod, <span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">times =</span> times_grid), <span class="at">se =</span> T)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> times_grid,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cyc_pred =</span> pred<span class="sc">$</span>fit,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>RMSE<span class="ot">=</span><span class="fu">sqrt</span>(<span class="fu">mean</span>(<span class="fu">residuals</span>(polymod)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(RMSE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 39.39187</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A polynomial model fits slightly better than the linear model but is still too generalized. The trends are heavily smoothed over.</p>
+</section>
+<section id="bs-with-knots-at-the-quartiles-and-degree-3" class="level4">
+<h4 class="anchored" data-anchor-id="bs-with-knots-at-the-quartiles-and-degree-3">BS() With Knots at the Quartiles and Degree 3:</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cubic Spline (Quartiles) (Model 2)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>cubicmod <span class="ot">=</span> <span class="fu">lm</span>(accel <span class="sc">~</span> <span class="fu">bs</span>(times, <span class="at">df =</span> <span class="dv">6</span>, <span class="at">degree =</span> <span class="dv">3</span>), <span class="at">data =</span> mcycle)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>times_lims <span class="ot">=</span> <span class="fu">range</span>(mcycle<span class="sc">$</span>times)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>times_grid <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span>times_lims[<span class="dv">1</span>],<span class="at">to=</span>times_lims[<span class="dv">2</span>])</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(cubicmod, <span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">times =</span> times_grid), <span class="at">se =</span> T)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> times_grid,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cyc_pred =</span> pred<span class="sc">$</span>fit,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>RMSE<span class="ot">=</span><span class="fu">sqrt</span>(<span class="fu">mean</span>(<span class="fu">residuals</span>(cubicmod)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(RMSE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 30.50603</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The cubic spline captures the overall trend of the data, but appears too smooth around the 20-40 millisecond interval where the data forms an extreme trough.</p>
+</section>
+<section id="bs-with-knots-at-the-quartiles-and-degree-4" class="level4">
+<h4 class="anchored" data-anchor-id="bs-with-knots-at-the-quartiles-and-degree-4">BS() With Knots at the Quartiles and Degree 4:</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>modd4 <span class="ot">=</span> <span class="fu">lm</span>(accel <span class="sc">~</span> <span class="fu">bs</span>(times, <span class="at">df =</span> <span class="dv">7</span>, <span class="at">degree =</span> <span class="dv">4</span>), <span class="at">data =</span> mcycle)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>times_lims <span class="ot">=</span> <span class="fu">range</span>(mcycle<span class="sc">$</span>times)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>times_grid <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span>times_lims[<span class="dv">1</span>],<span class="at">to=</span>times_lims[<span class="dv">2</span>])</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(modd4, <span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">times =</span> times_grid), <span class="at">se =</span> T)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> times_grid,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cyc_pred =</span> pred<span class="sc">$</span>fit,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>RMSE<span class="ot">=</span><span class="fu">sqrt</span>(<span class="fu">mean</span>(<span class="fu">residuals</span>(modd4)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(RMSE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 23.73613</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The spline of degree 4 seems to fully capture the nonlinear and oscillatory behavior. However, its behavior at the endpoints is very unstable.</p>
+</section>
+<section id="bs-with-custom-knots-and-degree-3" class="level4">
+<h4 class="anchored" data-anchor-id="bs-with-custom-knots-and-degree-3">BS() With Custom Knots and Degree 3:</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cubicmod2 <span class="ot">=</span> <span class="fu">lm</span>(accel <span class="sc">~</span> <span class="fu">bs</span>(times, <span class="at">knots =</span> customknots, <span class="at">degree =</span> <span class="dv">3</span>), <span class="at">data =</span> mcycle)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>times_lims <span class="ot">=</span> <span class="fu">range</span>(mcycle<span class="sc">$</span>times)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>times_grid <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span>times_lims[<span class="dv">1</span>],<span class="at">to=</span>times_lims[<span class="dv">2</span>])</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(cubicmod2, <span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">times =</span> times_grid), <span class="at">se =</span> T)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> times_grid,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cyc_pred =</span> pred<span class="sc">$</span>fit,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>RMSE<span class="ot">=</span><span class="fu">sqrt</span>(<span class="fu">mean</span>(<span class="fu">residuals</span>(cubicmod2)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(RMSE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 23.36944</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Implementing custom knots at the points of interest with cubic polynomials produced a well-fitting model. The RMSE value is slightly lower than that of the degree 4 model with knots at the quartiles. The behavior at the endpoints is captured more accurately.</p>
+</section>
+<section id="bs-with-custom-knots-and-degree-4" class="level4">
+<h4 class="anchored" data-anchor-id="bs-with-custom-knots-and-degree-4">BS() With Custom Knots and Degree 4:</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>modd4<span class="fl">.2</span> <span class="ot">=</span> <span class="fu">lm</span>(accel <span class="sc">~</span> <span class="fu">bs</span>(times, <span class="at">knots =</span> customknots, <span class="at">degree =</span> <span class="dv">4</span>), <span class="at">data =</span> mcycle)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>times_lims <span class="ot">=</span> <span class="fu">range</span>(mcycle<span class="sc">$</span>times)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>times_grid <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span>times_lims[<span class="dv">1</span>],<span class="at">to=</span>times_lims[<span class="dv">2</span>])</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(modd4<span class="fl">.2</span>, <span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">times =</span> times_grid), <span class="at">se =</span> T)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> times_grid,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cyc_pred =</span> pred<span class="sc">$</span>fit,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>RMSE<span class="ot">=</span><span class="fu">sqrt</span>(<span class="fu">mean</span>(<span class="fu">residuals</span>(modd4<span class="fl">.2</span>)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(RMSE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 24.55206</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A spline of degree 4 with custom knots fits the data fairly well, but is far too curved in the 0-15 millisecond interval. The beginning behavior unstable and does not capture the trend.</p>
+</section>
+<section id="ns-with-custom-knots" class="level4">
+<h4 class="anchored" data-anchor-id="ns-with-custom-knots">NS() With Custom Knots:</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>natmod <span class="ot">=</span> <span class="fu">lm</span>(accel <span class="sc">~</span> <span class="fu">ns</span>(times, <span class="at">knots =</span> customknots), <span class="at">data =</span> mcycle)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>times_lims <span class="ot">=</span> <span class="fu">range</span>(mcycle<span class="sc">$</span>times)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>times_grid <span class="ot">=</span> <span class="fu">seq</span>(<span class="at">from=</span>times_lims[<span class="dv">1</span>],<span class="at">to=</span>times_lims[<span class="dv">2</span>])</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>pred <span class="ot">=</span> <span class="fu">predict</span>(natmod, <span class="at">newdata =</span> <span class="fu">list</span>(<span class="at">times =</span> times_grid), <span class="at">se =</span> T)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">times =</span> times_grid,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cyc_pred =</span> pred<span class="sc">$</span>fit,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> pred<span class="sc">$</span>fit <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> pred<span class="sc">$</span>fit <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> pred<span class="sc">$</span>se.fit)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>RMSE<span class="ot">=</span><span class="fu">sqrt</span>(<span class="fu">mean</span>(<span class="fu">residuals</span>(natmod)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(RMSE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 23.74265</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The natural spline, with cubic polynomials, gives a model very similar to that of the degree 4 spline with knots at the quartiles. But, the behavior at the endpoints is controlled and fits the data much better.</p>
+</section>
+<section id="diagnostic-plots-for-bs-with-knots-at-the-quartiles-and-degree-3" class="level4">
+<h4 class="anchored" data-anchor-id="diagnostic-plots-for-bs-with-knots-at-the-quartiles-and-degree-3">Diagnostic Plots For BS() with Knots at the Quartiles and Degree 3</h4>
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-16-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This is a poor residual plot because it shows a nonzero trend. The QQ plot is also not ideal because it shows significant deviation at the tails, specifically, the right tail.</p>
+</section>
+<section id="diagnostic-plots-for-bs-with-custom-knots-and-degree-3" class="level4">
+<h4 class="anchored" data-anchor-id="diagnostic-plots-for-bs-with-custom-knots-and-degree-3">Diagnostic Plots For BS() with Custom Knots and Degree 3</h4>
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using method = 'loess' and formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Spline_Regression_files/figure-html/unnamed-chunk-17-2.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="480"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This residual plot is significantly better. The residuals are more clustered around zero, and the trend is close to linear. This QQ plot is also much improved, the deviations in the tails are less significant.</p>
+<p>Overall, the optimal model seems to be fit with custom knots at points of interest and cubic polynomials. This spline captures every trend in the data and appears to balance stability and flexibility well. The RMSE value is the lowest of all the models fit, and the residual and qq plots are ideal.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

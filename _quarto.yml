@@ -8,30 +8,35 @@ website:
     logo: flower.JPG
     logo-alt: "A flower logo"
     logo-href: index.qmd
-    left:
-      - href: index.qmd
-        text: Home
-      - href: Homework/Homework_1.qmd
-        text: Homework 1
-      - href: Homework/Homework_2.qmd
-        text: Homework 2
-      - href: Homework/Homework_3.qmd
-        text: Homework 3
-      - href: Homework/Homework_4.qmd
-        text: Homework 4
-      - href: Homework/Homework_5.qmd
-        text: Homework 5
-      - href: Homework/Homework_6.qmd
-        text: Homework 6
-      - href: Homework/Homework_7.qmd
-        text: Homework 7
-      - href: Homework/Homework_8.qmd
-        text: Homework 8
-      - href: Homework/Homework_9.qmd
-        text: Homework 9
-      - href: Homework/Homework_10.qmd
-        text: Homework 10
-
+    right:
+        - href: index.qmd
+          text: Home
+        - text: "Homework"
+          menu:
+          - href: Homework/Homework_1.qmd
+            text: Homework 1
+          - href: Homework/Homework_2.qmd
+            text: Homework 2
+          - href: Homework/Homework_3.qmd
+            text: Homework 3
+          - href: Homework/Homework_4.qmd
+            text: Homework 4
+          - href: Homework/Homework_5.qmd
+            text: Homework 5
+          - href: Homework/Homework_6.qmd
+            text: Homework 6
+          - href: Homework/Homework_7.qmd
+            text: Homework 7
+          - href: Homework/Homework_8.qmd
+            text: Homework 8
+          - href: Homework/Homework_9.qmd
+            text: Homework 9
+          - href: Homework/Homework_10.qmd
+            text: Homework 10
+        - text: "Final Project"
+          menu:
+          - href: Homework/Spline_Regression.qmd
+            text: Final Project
 format:
   html:
     theme:
