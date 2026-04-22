@@ -1,0 +1,20 @@
+---
+title: "MATH 3190"
+---
+
+This website contains homework assignments for Math 3190.
+
+```{r}
+#| echo: false
+library(ggplot2)
+
+t <- seq(0, 2*pi, by=0.1)
+x <- 16*sin(t)^3
+y <- 13*cos(t)-5*cos(2*t)-2*cos(3*t)-cos(4*t)
+df <- data.frame(t=t, x=x, y=y)
+
+ggplot(df, aes(x, y)) +
+  geom_polygon(fill="pink", col="black") +
+  theme_void() +
+  coord_fixed()
+```

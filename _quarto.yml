@@ -1,0 +1,41 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "quartowebsite"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: Homework/Homework_1.qmd
+        text: Homework 1
+      - href: Homework/Homework_2.qmd
+        text: Homework 2
+      - href: Homework/Homework_3.qmd
+        text: Homework 3
+      - href: Homework/Homework_4.qmd
+        text: Homework 4
+      - href: Homework/Homework_5.qmd
+        text: Homework 5
+      - href: Homework/Homework_6.qmd
+        text: Homework 6
+      - href: Homework/Homework_7.qmd
+        text: Homework 7
+      - href: Homework/Homework_8.qmd
+        text: Homework 8
+      - href: Homework/Homework_9.qmd
+        text: Homework 9
+      - href: Homework/Homework_10.qmd
+        text: Homework 10
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true
+
+editor: visual
+
