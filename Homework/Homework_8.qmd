@@ -1,0 +1,312 @@
+---
+title: "**MATH 3190 Homework 8**"
+subtitle: |
+  Due April 2, 2026\
+  Focus: Notes 9\
+  Total Points: 90 + 10 (Self-Critique Comment and Uploading to GitHub) = 100
+format: 
+  html:
+    embed-resources: true
+urlcolor: blue
+execute:
+  eval: true
+  echo: true
+editor_options: 
+  chunk_output_type: console
+---
+
+Note that your homework should be completed in Quarto. You can just add your answers and code to this document in the appropriate part. The file should be rendered as an html document or pdf document (html is quicker to render and you will need an installation of LaTeX to render as a pdf). You will "turn in" this homework by uploading the files, the .qmd and output file, to your GitHub `Math_3190_Assignment` repository in the `Homework/Homework_8` directory. Make sure all supporting files (if there are any) are in this directory as well. You should use `git` and `Unix` commands in a terminal for this (i.e. don't manually upload files to GitHub). In addition, you will submit just your html or pdf file on Canvas to unlock the solutions.
+
+Don't forget to also put a [self-critique comment]{.underline} on Canvas indicating what you did correctly and incorrectly and include any questions you may have about the assignment after submitting the assignment and thoroughly looking through the solutions.
+
+# Problem 1 (10 points)
+
+Three airlines serve a small town in Ohio. Airline A has 52% of all scheduled flights, airline B has 35% and airline C has the remaining 13%. Their on-time rates are 85%, 67%, and 41%, respectively. A flight just left on-time. What is the probability that it was a flight of airline A?
+
+The probability of a flight being on time:
+
+$P(T) = P(A)P(T|A) + P(B)P(T|B) + P(C)P(T|C) = (0.52*0.85) + (0.35*0.67) + (0.13*0.41) = 0.7298$
+
+The probability of a flight being on time from airline A:
+
+$P(A|T) = \dfrac{P(A)P(T|A)}{P(T)} = \dfrac{0.52 * 0.85}{0.7298} = 0.605645$
+
+# Problem 2 (15 points)
+
+Suppose we have a data set with each observation $x_i$ independent and identically exponentially distributed for $i=1,2,\dots,n$. That is, $x_i\sim \text{Exp}(\lambda)$ where $\lambda$ is the rate parameter. We would like to find a posterior (or at least a function proportional to it) for $\lambda$.
+
+### Part a (6 points)
+
+Write down the likelihood function (or a function proportional to it) in this situation. We would call this $p(x|\lambda)$.
+
+$p(x|\lambda) \propto \lambda^n e^{-\lambda \sum_{i=1}^n x_i}$
+
+### Part b (6 points)
+
+Now let $\lambda$ have a normal prior with mean 0.1 and variance 1: $\lambda\sim N(1/10,\ 1)$. Use this and the likelihood from part (a) to write down a function that is proportional to the posterior of $\lambda$ given $\boldsymbol{x}$. We call this $p(\lambda|\boldsymbol{x})$.
+
+$p(\lambda|x) \propto \lambda^n \exp\left(-\lambda \sum_{i=1}^n x_i - \frac{(\lambda - 0.1)^2}{2}\right)$
+
+### Part c (3 points)
+
+Which would be more appropriate here to obtain samples of $\lambda$, the Gibbs or Metropolis algorithm? Explain why. You may want to look on page 171 of Notes 9 in the conjugate prior table.
+
+The Metropolis Algorithm would be more appropriate here. This is because the prior for $\lambda$ is normal, but the likelihood comes from an exponential distribution, which is why the posterior isn't standard form to the prior. The Metropolis algorithm can sample from any posterior distribution up to a proportionality constant, while Gibbs sampling requires knowing the full conditional distributions in closed form and being able to sample from them directly.
+
+# Problem 3 (30 points)
+
+Suppose we have the vector `x = c(1.83, 1.72, 2.13, 2.49, 0.90, 2.01, 1.51, 3.12, 1.29, 1.54, 2.94, 3.02, 0.93, 2.78)` that we believe comes from a gamma distribution with shape of 10 and some rate $\beta$: $x_i\sim\text{Gam}(10,\ \beta)$. We will use sampling to obtain some information about $\beta$. Let’s put a gamma prior on $\beta$ with a shape of $\alpha_0$ and a rate of 1: $\beta\sim\text{Gam}(\alpha_0,\ 1)$.
+
+### Part a (5 points)
+
+Use the fact that this is a conjugate prior to write down what kind of distribution the posterior of $\beta$, which is $p(\beta|\boldsymbol{x})$, is.
+
+Gamma with shape $\alpha_0 + 10n$ and rate $\beta_0 + \sum_{i=1}^n x_1$
+
+### Part b (5 points)
+
+Let $\alpha_0=1$. In an **R** code chunk, sample 10,000 $\beta$ values from the distribution you wrote down in part (a) using the `rgamma()` function and report the 95% credible interval for $\beta$ using the 2.5th and 97.5th percentiles.
+
+```{r}
+x = c(1.83, 1.72, 2.13, 2.49, 0.90, 2.01, 1.51, 3.12, 1.29, 1.54, 2.94, 3.02, 0.93, 2.78)
+shape1 <- 1 + length(x)*10
+rate <- 1 + sum(x)
+beta1 <- rgamma(10000, shape1, rate)
+quantile(beta1, c(0.025, 0.97))
+```
+
+### Part c (3 points)
+
+Repeat part (b) with $\alpha_0 = 10$.
+
+```{r}
+x = c(1.83, 1.72, 2.13, 2.49, 0.90, 2.01, 1.51, 3.12, 1.29, 1.54, 2.94, 3.02, 0.93, 2.78)
+shape2 <- 10 + length(x)*10
+rate <- 1 + sum(x)
+beta2 <- rgamma(10000, shape2, rate)
+quantile(beta2, c(0.025, 0.97))
+```
+
+### Part d (3 points)
+
+Repeat part (b) with $\alpha_0 = 100$.
+
+```{r}
+x = c(1.83, 1.72, 2.13, 2.49, 0.90, 2.01, 1.51, 3.12, 1.29, 1.54, 2.94, 3.02, 0.93, 2.78)
+shape3 <- 100 + length(x)*10
+rate <- 1 + sum(x)
+beta3 <- rgamma(10000, shape3, rate)
+quantile(beta3, c(0.025, 0.97))
+```
+
+### Part e (4 points)
+
+Comment on the effect the value of $\alpha_0$ has on the credible intervals for $\beta$ as revealed in parts (b), (c), and (d).
+
+The higher value of $\alpha_0$, the wider the credible interval is. With an $\alpha_0$ of 1, the credible interval is about 4.06 to 5.64. For an $\alpha_0$ of 10, the credible interval is about 4.36 to 5.94. For an $\alpha_0$ of 100, the credible interval is about 7.21 to 9.32.
+
+### Part f (6 points)
+
+Now suppose we have twice as much data (given in the **R** code chunk below). Repeat parts (b), (c), and (d) using this `x` vector given below instead of the other one and report the three 95% credible intervals. Note, this new vector x will change the shape and rate parameters used in the `rgamma()` functions.
+
+```{r}
+#| label: new_x
+x <- c(1.83, 1.72, 2.13, 2.49, 0.90, 2.01, 1.51, 3.12, 1.29, 1.54,
+       2.94, 3.02, 0.93, 2.78, 2.76, 1.70, 1.42, 2.16, 1.07, 2.21,
+       2.38, 2.27, 1.72, 1.44, 1.54, 1.72, 1.87, 1.39)
+
+shape1 <- 1 + length(x*2)*10
+rate <- 1 + sum(x*2)
+beta1 <- rgamma(10000, shape1, rate)
+quantile(beta1, c(0.025, 0.97))
+
+shape2 <- 10 + length(x*2)*10
+rate <- 1 + sum(x*2)
+beta2 <- rgamma(10000, shape1, rate)
+quantile(beta2, c(0.025, 0.97))
+
+shape3 <- 100 + length(x*2)*10
+rate <- 1 + sum(x*2)
+beta3 <- rgamma(10000, shape1, rate)
+quantile(beta1, c(0.025, 0.97))
+```
+
+### Part g (4 points)
+
+In this problem, the true $\beta$ value is 5. Write a sentence or two about the effect adding more data has to these credible intervals by comparing the intervals from parts (b)-(d) to the intervals from part (f).
+
+When the amount of sample data is increased, a more accurate estimate of the true beta value can be achieved because as the sample size increases, the confidence intervals become narrower and more definite.
+
+# Problem 4 (35 points)
+
+Let’s apply the Bayesian framework to a regression problem. In the `math3190package` library is the `treeseeds` dataset (it is also on GitHub) that contains information about species of tree, the count of seeds it produces, and the average weight of those seeds in mg.
+
+### Part a (3 points)
+
+Using the `treeseeds` data, create new variables defined by taking the log of the counts and weights. Fit an OLS regression model using logged weight to predict logged count.
+
+```{r}
+#| label: treeseeds
+library(math3190package) |> suppressPackageStartupMessages()
+tree <- treeseeds |>
+  mutate(lcount = log(count),
+         lweight = log(weight))
+
+model <- lm(lcount ~ lweight, data = tree)
+summary(model)
+```
+
+### Part b (5 points)
+
+Please read this carefully and try to understand what is being done here. There is just one question at the end of this part for you. We will walk through the mathematics and code of obtaining the posterior and samples together here since this problem will focus on looking at diagnostics, but I want you to see the **Metropolis algorithm** in action! Make sure to read this in the html or pdf file where all equations are rendered nicely.
+
+Assuming the true errors are normal with mean 0 and variance $\sigma^2$, $\epsilon_i\sim N(0,\ \sigma^2)$, it can be shown that each $y_i$ has the distribution $$
+p(y_i|x_i,\beta_0,\beta_1\sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(
+-\frac{1}{2\sigma^2}(y_i-\beta_0-\beta_1x_i)^2\right)
+$$
+
+So, we can write the likelihood is $$
+p(y_i|x_i,\beta_0,\beta_1\sigma^2)\propto\exp\left(
+-\frac{1}{2\sigma^2}(y_i-\beta_0-\beta_1x_i)^2\right)
+$$ where $y_i$ is the log(count) for observation $i$ and $x_i$ is the log(weight) for observation $i$. Note that here we think of $\boldsymbol{y}$ as being random and $\boldsymbol{x}$ as being fixed. We could, in theory, think of the vector $\boldsymbol{x}$ as also being random and put a prior on it. But we won’t do that here.
+
+Now, let’s just put uniform priors on $\beta_0$ and $\beta_1$ so the priors are proportional to 1. Also, let’s assume $\sigma^2=1$. This seems reasonable since $s_e^2$, the MSE, is 0.877. Of course, we could put a prior on $\sigma^2$ as well and sample it too, but we will focus on only sampling $\beta_0$ and $\beta_1$.
+
+Now, with those uniform priors, and plugging in 1 for $\sigma^2$, we have that the joint posterior of $\beta_0$ and $\beta_1$ is: $$
+p(\beta_0,\beta_1|\boldsymbol{x},\boldsymbol{y}) \propto\exp\left(
+-\frac{1}{2}\sum_{i=1}^n(y_i-\beta_0-\beta_1x_i)^2\right)=f(\beta_0,\beta_1|\boldsymbol{x},\boldsymbol{y}).
+$$
+
+Then, we can take the log to get $$
+\ln(f(\beta_0,\beta_1|\boldsymbol{x},\boldsymbol{y}))=-\frac{1}{2}\sum_{i=1}^n(y_i-\beta_0-\beta_1x_i)^2.
+$$
+
+Our goal now is to obtain samples of $\beta_0$ and $\beta_1$. Let’s use the Metropolis algorithm to do this. Using the log of the function proportional to the joint posterior of $\beta_0$ and $\beta_1$, $\ln\Big(f(\beta_0,\beta_1|\boldsymbol{x},\boldsymbol{y})\Big)$, we'll write a Metropolis algorithm in **R**. For $\beta_0$, we will use a normal proposal distribution centered at the previous value, $\beta_0^{(i)}$, with a standard deviation of 0.8 and for $\beta_1$, and we will use a normal proposal distribution centered at the previous value, $\beta_1^{(i)}$, with a standard deviation of 0.1. The starting values don’t matter too much, but we'll use $\beta_0^{(0)}=10$ and $\beta_1^{(0)}=-0.5$.
+
+This code will generate 10,000 samples and plot the chains for $\beta_0$ and $\beta_1$. In addition, the 95% credible interval for $\beta_0$ and $\beta_1$ are given.
+
+```{r}
+#| label: mcmc
+#| fig-height: 6
+#| fig-width: 8
+library(patchwork)
+set.seed(2026)
+nsamps <- 10000
+beta0 <- rep(0, nsamps)
+beta1 <- rep(0, nsamps)
+beta0[1] <- 10
+beta1[1] <- -0.5
+for (i in 1:(nsamps - 1)) {
+  beta0_star <- rnorm(1, beta0[i], 0.8) # Proposed new value for intercept
+  beta1_star <- rnorm(1, beta1[i], 0.1) # Proposed new value for slope
+  # y is tree$lcount and x is tree$lweight
+  lf1 <- -1 / 2 * sum((tree$lcount - beta0_star - beta1_star * tree$lweight)^2)
+  lf2 <- -1 / 2 * sum((tree$lcount - beta0[i] - beta1[i] * tree$lweight)^2)
+  if (log(runif(1)) < lf1 - lf2) {
+    # Accept the proposed values as new sample values if the above 
+    #   condition is satisfied
+    beta0[i + 1] <- beta0_star
+    beta1[i + 1] <- beta1_star
+  } else {
+    # Otherwise set the new sample values to be equal to the previous ones
+    beta0[i + 1] <- beta0[i]
+    beta1[i + 1] <- beta1[i]
+  }
+}
+
+mcmc_df <- data.frame(index = 1:nsamps, beta0 = beta0, beta1 = beta1)
+mcmc_plot1 <- 
+  ggplot(mcmc_df, aes(x = index, y = beta0)) +
+  geom_line() +
+  theme_test() +
+  scale_x_continuous(breaks = seq(0, 10000, by = 2000)) +
+  scale_y_continuous(breaks = seq(8, 11, by = 0.5)) + 
+  labs(x = "Index", y = expression(beta[0]))
+
+mcmc_plot2 <- 
+  ggplot(mcmc_df, aes(x = index, y = beta1)) +
+  geom_line() +
+  theme_test() +
+  scale_x_continuous(breaks = seq(0, 10000, by = 2000)) +
+  scale_y_continuous(breaks = seq(-0.75, -0.25, by = 0.1)) + 
+  labs(x = "Index", y = expression(beta[1]))
+
+mcmc_plot1 / mcmc_plot2
+
+quantile(beta0, c(.025, .975))
+quantile(beta1, c(.025, .975))
+```
+
+The plots of the chains are given in the output above.
+
+The 95% credible interval for $\beta_0$ is $(8.53, 10.21)$.
+
+The 95% credible interval for $\beta_1$ is $(-0.661, -0.368)$.
+
+Your intervals may differ a bit due to the random sampling.
+
+Okay, here is the question for you! Based on the plots of the chains above, does it look like the Metropolis sampling worked fairly well? Explain.
+
+It does look like the Metropolis sampling worked fairly well. Both $\beta_0$ and $\beta_1$ fluctuate around a stable region with no apparent trend, which suggests convergence. The chains also show good mixing. They move often instead of getting stucki, which suggests the algorithm is effectively sampling from the posterior distribution.
+
+### Part c (3 points)
+
+Interpret both of the credible intervals from part (b).
+
+The 95% credible interval for $\beta_0$ means that given the data and model, there's a 95% probability that the true intercept lies between 8.53 and 10.21. The 95% credible interval for $\beta_1$ means that there is a 95% probability that the true slope lies between -0.661 and -0.368. This indicates a negative relationship.
+
+### Part d (5 points)
+
+Find and report the integrated autocorrelation time for the $\beta_0$ and $\beta_1$ chains. Each chain will have their own $\hat{\tau}_{int}$ value, so you should report two (although they will be similar).
+
+```{r}
+library(coda)
+
+tau_int_beta0 <- 10000 / effectiveSize(as.mcmc(beta0))
+tau_int_beta1 <- 10000 / effectiveSize(as.mcmc(beta1))
+
+tau_int_beta0
+tau_int_beta1
+```
+
+### Part e (3 points)
+
+Based on the integrated autocorrelation time for the $\beta_0$ and $\beta_1$ chains, how many MCMC samples would you need to generate to get the equivalent of 10,000 independent samples?
+
+For $\beta_0$, you would need about 167,873 samples. For $\beta_1$, you would need about 220,470 samples.
+
+### Part f (3 points)
+
+Let’s compare these credible intervals to some other intervals. First, obtain the 95% $t$ confidence intervals for $\beta_0$ and $\beta_1$ just using the `confint()` function on the model you fit in part (a) and report them here.
+
+```{r}
+model <- lm(lcount ~ lweight, data = tree)
+confint(model, level = 0.95)
+```
+
+The 95% t-based interval for $\beta_0$ is (8.54, 10.22). The 95% t-based interval for $\beta_1$ is (-0.67, -0.36).
+
+### Part g (8 points)
+
+Now let's obtain confidence intervals using bootstrapping the cases like we did with in Notes 7 and HW 5. You can use the `bootstrapping()` function in the `math3190package` for this or do it yourself with a loop. Set a seed and then using at least 10,000 bootstrap samples, report the 95% percentile confidence intervals for $\beta_0$ and $\beta_1$.
+
+```{r}
+library(math3190package) |> suppressPackageStartupMessages()
+set.seed(2026)
+
+reg_fun <- function(data, i) {
+  lm(lcount ~ lweight, data = data[i, ])$coef
+}
+
+boot_out <- bootstrapping(tree, reg_fun, 10000)
+
+boot_ci(boot_out)
+```
+
+The 95% bootstrap percentile confidence interval for $\beta_0$ is about (8.40, 10.30). The 95% bootstrap percentile confidence interval for $\beta_1$ is about (-0.67, -0.35).
+
+### Part i (5 points)
+
+Write a couple sentences comparing all of the intervals in parts (b), (f), and (g).
+
+The confidence intervals in parts (b), (f), and (g) are all fairly similar for both $\beta_0$ and $\beta_1$. This would be expected since the model assumptions are reasonable and the priors were flat.

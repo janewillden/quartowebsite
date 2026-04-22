@@ -1,0 +1,383 @@
+---
+title: "**MATH 3190 Homework 5**"
+subtitle: |
+  Due February 26, 2026\
+  Focus: Boostrapping from Notes 5 and Notes 7 Part 1\
+  Total Points: 90 + 10 (Self-Critique Comment and Uploading to GitHub) = 100
+format: 
+  html:
+    embed-resources: true
+urlcolor: blue
+execute:
+  eval: true
+  echo: true
+editor_options: 
+  chunk_output_type: console
+---
+
+Note that your homework should be completed in Quarto. You can just add your answers and code to this document in the appropriate part. The file should be rendered as an html document or pdf document (html is quicker to render and you will need an installation of LaTeX to render as a pdf). You will "turn in" this homework by uploading the files, the .qmd and output file, to your GitHub `Math_3190_Assignment` repository in the `Homework/Homework_5` directory. Make sure all supporting files (if there are any) are in this directory as well. You should use `git` and `Unix` commands in a terminal for this (i.e. don't manually upload files to GitHub). In addition, you will submit just your html or pdf file on Canvas to unlock the solutions.
+
+Don't forget to also put a [self-critique comment]{.underline} on Canvas indicating what you did correctly and incorrectly and include any questions you may have about the assignment after submitting the assignment and thoroughly looking through the solutions.
+
+Also, there is a package I created with many functions and data files we will be using for the remainder of this class. You can install this package instead of downloading and reading in the data files. To download the package, do the following in **R**:
+
+1.  Install the remotes or the `devtools` package using either `install.packages("remotes")` or `install.packages("devtools")`.
+2.  Load the package: `library(remotes)` or `library(devtools)`.
+3.  Install the course package: `install_github("rbrown53/math3190package")`. If it asks you if you want to update packages, you can select that you do.
+4.  Now, you will simply have to load the package (which will also load the `tidyverse`) for each homework assignment: `library(math3190package)`.
+
+```{r}
+library(devtools)
+```
+
+# Problem 1 (35 points)
+
+We first covered bootstrapping in Notes 5, but we returned to it here. Let's do a problem on bootstrapping that takes ideas from Notes 5 and Notes 7.
+
+The amount of money spent on health care is an important issue for workers because many companies provide health insurance that only partial covers many medical procedures. The director of employee benefits at a midsize company wants to determine the amount spent on health care by the typical hourly worker in the company. A random sample of 25 workers is selected and the amounts they spent on their family’s health care needs during the past year can be found in the `healthcare` tibble in the `math3190package`.
+
+### Part a (4 points)
+
+Graph the data using both a boxplot and normal quantile plot (QQ plot) and use these to assess whether the population has a normal distribution.
+
+```{r}
+library(math3190package)
+data(healthcare)
+
+boxplot(healthcare$amount,
+        main = "Boxplot of Annual Health Care Spending",
+        ylab = "Amount Spent")
+qqnorm(healthcare$amount,
+       main = "Normal QQ Plot of Annual Health Care Spending")
+qqline(healthcare$amount, col = "blue")
+```
+
+The boxplot shows a longer upper tail and outliers on the higher end, which means it is probably skewed right. The normal QQ plot shows a deviation from the line in the upper tail. The largest observations are a lot bigger than what would be expected if it was normally skewed. The population distribution does not appear to be normal.
+
+### Part b (4 points)
+
+Construct a 95% confidence interval for the mean cost per household using a t-interval. You can use the `t.test()` function for this. Interpret this confidence interval in context of the problem and comment on whether the t-procedure is appropriate to use here.
+
+```{r}
+t.test(healthcare$amount)
+```
+
+The 95% t-interval for the true mean annual health care cost is \$163.60 to \$982.64.This means that we are 95% confidence that the true mean yearly health care cost per household is somewhere between those two numbers. Because the data seems to be skewed right and the sample size is only being 25, the t-interval might not be appropriate because it might not be representative of the population.
+
+### Part c (7 points)
+
+Now let’s use bootstrapping to estimate a 95% interval for the mean.
+
+First, write a loop yourself that will do this. In the loop, you’ll need to sample from your data set with replacement, take the mean of that sample, and then store those means. Have the loop do this 10,000 times. Then you can obtain a 95% interval by using the quantile function in **R**. Specifically, you can type `quantile(means_vector, c(0.025, 0.975))` (if you call your vector `means_vector`) to get a 95% interval based on the percentile method.
+
+```{r}
+set.seed(3190)
+
+means_vector = numeric(10000)
+
+for(i in 1:10000) {
+  bootstrap_sample = sample(healthcare$amount,
+                             size = 25,
+                             replace = TRUE)
+  
+  means_vector[i] = mean(bootstrap_sample)
+}
+
+quantile(means_vector, c(0.025, 0.975))
+```
+
+A 95% bootstrap percentile confidence interval for the true mean annual health care cost is \$256.84 to \$1013.28. This means we are 95% confident that the true mean annual health care cost per household is between those two amounts.
+
+### Part d (5 points)
+
+Now use the `bootstrapping()` function in the `math3190package` library to obtain a bootstrap object using 10,000 samples. Then use the `boot_ci()` function to obtain the 95% intervals. Report the Percentile interval and BCa interval. Compare your interval from part (c) to the Percentile interval computed here. They should be similar.
+
+```{r}
+amount = healthcare$amount
+mean_2 = function(x, i) {mean(x[i])}
+(b_mean = bootstrapping(amount, mean_2, 10000))
+
+boot_ci(b_mean)
+```
+
+The 95% percentile bootstrap interval for the mean annual health care cost is from \$259 to \$998. The 95% BCa interval is from \$300 to \$1197. The percentile interval is very similar to the bootstrap interval found in part c. This is expected, since they both use the percentile method with 10,000 bootstrap samples.
+
+### Part e (3 points)
+
+Write a sentence or two comparing the intervals you obtained in parts (c) and (d) to the t-interval you constructed in part (b).
+
+The bootstrap interval from parts (c) and (d) is similar to the t-interval from part (b). The BCa interval is a bit wider and shifted a little upwards. This suggests the data might be skewed. The bootstrap intervals don't rely on assuming data is normally distributed, so they can be appropriate if the distribution of health care isn't normal.
+
+### Part g (4 points)
+
+Use the `boostrapping()` function with at least 10,000 samples to obtain a 95% confidence interval based on BCa for the median.
+
+```{r}
+median_2 = function(x, i) {median(x[i])}
+boot_ci(bootstrapping(healthcare$amount, median_2, 10000))
+```
+
+The 95% BCa bootstrap confidence interval for the median health care cost is \$208 to \$326
+
+### Part h (5 points)
+
+The IQR is a measure of spread commonly used with the median. Construct a 95% confidence interval based on BCa for the IQR using the `bootstrapping()` function with at least 10,000 samples and interpret the interval. Also plot the output of the `bootstrapping()` function and comment on whether the distribution looks close to normal.
+
+```{r}
+IQR_2 = function(x, i) {IQR(x[i])}
+boot_ci(bootstrapping(healthcare$amount, IQR_2, 10000), type = "bca")
+```
+
+The 95% BCa bootstrap confidence interval for the IQR is \$47 to \$330. From the histogram we can see nearly all the data is on the left side, which means the bootstrap distribution is skewed right and not normally distributed.
+
+### Part i (3 points)
+
+In all of these bootstraps, what did we have to assume about the population in order for these intervals to be valid?
+
+In all of these bootstraps, we assumed the sample is representative of the population. The bootstrap doesn't require the population to be normally distributed, but it does assume that the resampled values tend to reflect the true variability in the population.
+
+# Problem 2 (55 points)
+
+Concrete is the most important material in civil engineering. The concrete compressive strength is an important attribute of the concrete and our goal is to predict the concrete compressive strength (in MPa) from the following variables:
+
+-   Cement (in $\text{kg}/\text{m}^3$)
+-   Blast furnace slag (in $\text{kg}/\text{m}^3$)
+-   Fly ash (in $\text{kg}/\text{m}^3$)
+-   Water (in $\text{kg}/\text{m}^3$)
+-   Superplasticizer (in $\text{kg}/\text{m}^3$)
+-   Coarse aggregate (in $\text{kg}/\text{m}^3$)
+-   Fine aggregate (in $\text{kg}/\text{m}^3$)
+-   Age of concrete (in days)
+
+This dataset came from the [UCI ML Repository](https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength) and can be found on the Math3190_Sp26 GitHub page along with a Readme file and in the `Concrete_Data` tibble in the `math3190package` **R** library.
+
+### Part a (2 points)
+
+Change the names of the variables in `Concrete_Data` so they are shorter yet still descriptive. Name this something other than `Concrete_Data` so you don't overwrite it.
+
+```{r}
+library(math3190package)
+library(tidyverse)
+
+concrete_data = Concrete_Data %>%
+  rename(
+    cement = 'Cement (component 1)(kg in a m^3 mixture)',
+    slag = 'Blast Furnace Slag (component 2)(kg in a m^3 mixture)',
+    ash = 'Fly Ash (component 3)(kg in a m^3 mixture)',
+    water = 'Water  (component 4)(kg in a m^3 mixture)',
+    superplasticizer = 'Superplasticizer (component 5)(kg in a m^3 mixture)',
+    coarse_aggr = 'Coarse Aggregate  (component 6)(kg in a m^3 mixture)',
+    fine_aggr = 'Fine Aggregate (component 7)(kg in a m^3 mixture)',
+    age = 'Age (day)',
+    strength = 'Concrete compressive strength(MPa, megapascals)'
+  )
+```
+
+### Part b (5 points)
+
+In the `GGally` library is the function `ggpairs()`, which makes a nice scatterplot matrix in the `ggplot2` style. `GGally` should have already been installed when you installed `math3190package`, so you will just need to load it. Using `ggpairs()`, Create this scatterplot matrix for all of the variables in the dataset (they should all be plotted together in one plot).
+
+Comment on the scatterplot matrix. Which variables seem to have a (at least somewhat) linear relationship with compressive strength?
+
+```{r}
+library(GGally)
+library(tidyverse)
+
+ggpairs(concrete_data)
+```
+
+From the scatterplot matrix, one could say cement has the most linear relationship with compressive strength. Water does as well, but this relationship seems to be a negative one. The same could be argued for ash, it has a somewhat negative linear relationship and superplasticizer has a somewhat positive linear relationship.
+
+### Part c (3 points)
+
+Fit a linear model (with the `lm()` function) predicting compressive strength using all other variables. After you've done that, interpret the slope of the water variable in the context of the problem and answer whether it is considered a significant variable in the model.
+
+```{r}
+model_full = lm(strength ~ ., data = concrete_data)
+
+summary(model_full)
+```
+
+The estimated coefficient for water is -0.150298. This means holding all other variables constant, when you increase water one kg/$m^3$ there is an average decrease of 0.150 MPa in compressive strength.
+
+### Part d (6 points)
+
+Using `ggplot()`, make a QQ plot of the raw residuals (obtained using the `residuals()` function). Include the QQ line as well. Comment on whether the residuals appear to be approximately normal.
+
+```{r}
+raw_resid = residuals(model_full)
+
+ggplot(data.frame(raw_resid), aes(sample = raw_resid)) +
+  stat_qq() +
+  stat_qq_line() +
+  labs(title = "QQ Plot of Raw Residuals")
+```
+
+The points in the QQ plot follow the reference line pretty well, which means the residuals are roughly normally distributed. There is just a little bit of deviation in the tails.
+
+Using `ggplot()`, make a plot of the jackknife residuals (obtained using the `rstudent()` function) on the y-axis and the fitted values of the model on the x-axis. Comment on whether this residual plot looks good. If it does not, indicate what the problem(s) is (are).
+
+```{r}
+jack_resid = rstudent(model_full)
+fitted_vals = fitted(model_full)
+
+ggplot(data.frame(fitted_vals, jack_resid),
+       aes(x = fitted_vals, y = jack_resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Studentized Residuals vs Fitted Values",
+       x = "Fitted Values",
+       y = "Studentized Residuals")
+```
+
+The residual plot shows a random scatter of studentized residuals around zero. There is not really a pattern or curvature present.
+
+### Part e (6 points)
+
+Since the residual plots do not look good, let's try to use weighted least squares. Following the code on page 118 and 119 of Notes 7, create a vector of weights and then fit a new model using weighted least squares.
+
+```{r}
+abs_resid = abs(residuals(model_full))
+fitted_vals = fitted(model_full)
+
+var_model = lm(abs_resid ~ fitted_vals)
+
+pred_var = fitted(var_model)
+weights_vec = 1 / (pred_var^2)
+
+model_wls = lm(strength ~ ., 
+                data = concrete_data, 
+                weights = weights_vec)
+
+summary(model_wls)
+```
+
+### Part f (5 points)
+
+Using `ggplot()`, make a plot of the jackknife residuals (obtained using the `rstudent()` function) on the y-axis and the fitted values of the weighted model on the x-axis. Comment on whether this residual plot looks good and whether this plot looks better than the residual plot in part d.
+
+```{r}
+jack_resid_wls = rstudent(model_wls)
+
+fitted_wls = fitted(model_wls)
+
+ggplot(data.frame(fitted_wls, jack_resid_wls),
+       aes(x = fitted_wls, y = jack_resid_wls)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Studentized Residuals vs Fitted Values (WLS)",
+       x = "Fitted Values",
+       y = "Studentized Residuals")
+```
+
+### Part g (8 points)
+
+Using the unweighted model from part c and the weighted model from part e, find and report both a confidence interval for the mean compressive strength and a prediction interval for the specific compressive strength for concrete that has a cement value of 300, a blast furnace slag of 90, a fly ash of 50, a water value of 200, a superplasticizer of 2.5, a coarse aggregate of 900, a fine aggregate of 600, and an age of 300 days. You can use the `predict()` function here and remember that you will need to find the specific weight for the given predictor variable values for the weighted intervals. You can follow along with the code used on page 121 of Notes 7.
+
+Comment on how these intervals differ. Does the change make sense given the value of the fitted value?
+
+```{r}
+new_point = data.frame(cement = 300,
+                        slag = 90,
+                        ash = 50,
+                        water = 200,
+                        superplasticizer = 2.5,
+                        coarse_aggr = 900,
+                        fine_aggr = 600,
+                        age = 300)
+
+predict(model_full,
+        newdata = new_point,
+        interval = "confidence")
+
+predict(model_full,
+        newdata = new_point,
+        interval = "prediction")
+
+predict(model_full,
+        newdata = new_point,
+        interval = "confidence")
+
+new_fit = predict(model_full, newdata = new_point)
+
+new_sd = predict(var_model, newdata = data.frame(fitted_vals = new_fit))
+new_weight = 1 / (new_sd^2)
+
+predict(model_wls,
+        newdata = new_point,
+        interval = "confidence")
+
+predict(model_wls,
+        newdata = new_point,
+        interval = "prediction")
+
+```
+
+### Part h (10 points)
+
+Write a function called `predict_weighted` that takes three inputs: the **unweighted** model, a data frame containing information about the value(s) of the predictor variables we are using to predict, and the interval type (either "confidence" or "prediction"). This function should return the predicted value and the interval bounds for the specified interval type for weighted least squares. So, this function should compute the weights, obtain the weighted least squares model, find the specific weight for the new value, and then get the prediction and the interval. This function should work for any linear model (made with the `lm()` function) you give it, not just for this exact situation of this problem. So, you should not reference any data sets or variables specific to this concrete problem in the function.
+
+Test this new function for the confidence and prediction intervals you made in part f.
+
+```{r}
+predict_weighted = function(unweighted_model, newdata, interval_type) {
+  
+  original_data = model.frame(unweighted_model)
+  model_formula = formula(unweighted_model)
+  
+  abs_residuals = abs(residuals(unweighted_model))
+  fitted_vals = fitted(unweighted_model)
+
+  residual_model = lm(abs_residuals ~ fitted_vals)
+  
+  estimated_sd = fitted(residual_model)
+  weights_vector = 1 / (estimated_sd^2)
+  
+  original_data$wts = weights_vector
+  
+  wls_model = lm(model_formula,
+                  data = original_data,
+                  weights = wts)
+
+  
+  predictions = predict(wls_model,
+                         newdata = newdata,
+                         interval = interval_type)
+  
+  return(predictions)
+}
+
+new_point = data.frame(
+  cement = 300,
+  slag = 90,
+  ash = 50,
+  water = 200,
+  superplasticizer = 2.5,
+  coarse_aggr = 900,
+  fine_aggr = 600,
+  age = 300
+)
+
+predict_weighted(model_full, new_point, "confidence")
+predict_weighted(model_full, new_point, "prediction")
+```
+
+### Part i (5 points)
+
+In this problem, based on the residual plots in part d, we found you the errors do not have constant variance. Another remedial measure for models with non-constant variance (heteroskedasticity) is to bootstrap the cases.
+
+Using the `boostrapping()` function in `math3190package`, run a bootstrap of the cases for at least 5,000 bootstrap samples on the model coefficients. Note that an unweighted model should be fit when bootstrapping.
+
+```{r}
+bootcases = function(resids, i) {
+  lm(strength ~ ., data = concrete_data[i, ])$coef
+}
+boot_out2 = bootstrapping(residuals(model_full), bootcases, 5000)
+boot_ci(boot_out2)
+```
+
+### Part j (5 points)
+
+Compare the means and standard deviations for the bootstrapped coefficients along with the estimate and standard errors for the coefficients for both the weighted and unweighted models. Write a few sentences comparing them. If done correctly, the standard errors when bootstrapping should be larger. Why is that the case?
+
+The bootstrap means are close to the original OLS estimates, which is expected. The bootstrap standard deviations are typically larger than the standard errors from the unweighted and weighted models. This makes sense because the bootstrap doesn't assume constant variance and accounts for the extra variability in the data. The weighted model reduces variance for observations with larger residuals, but the bootstrap still reflects the natural variability of the coefficients across resampled datasets, so its standard errors are typically larger.
