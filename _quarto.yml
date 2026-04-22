@@ -5,6 +5,9 @@ project:
 website:
   title: "quartowebsite"
   navbar:
+    logo: flower.JPG
+    logo-alt: "A flower logo"
+    logo-href: index.qmd
     left:
       - href: index.qmd
         text: Home
@@ -32,8 +35,8 @@ website:
 format:
   html:
     theme:
-      - cosmo
-      - brand
+    - Minty
+    - brand
     css: styles.css
     toc: true
 
