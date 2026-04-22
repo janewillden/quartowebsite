@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "quartowebsite"
+  title: "Jane's Quarto Website"
   navbar:
     logo: flower.JPG
     logo-alt: "A flower logo"
@@ -33,10 +33,8 @@ website:
             text: Homework 9
           - href: Homework/Homework_10.qmd
             text: Homework 10
-        - text: "Final Project"
-          menu:
-          - href: Homework/Spline_Regression.qmd
-            text: Final Project
+        - href: Homework/Spline_Regression.qmd
+          text: "Final Project"
 format:
   html:
     theme:
